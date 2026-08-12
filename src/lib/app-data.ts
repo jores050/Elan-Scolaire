@@ -1,10 +1,17 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+﻿import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAIProvider } from "@/lib/env";
 import { topicLabels } from "@/lib/topics";
 
 function hashText(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function createHttpError(status: number, message: string) {
+  const error = new Error(message) as Error & { status?: number };
+  error.status = status;
+  return error;
 }
 
 export function generateLicensePlainText() {
@@ -19,7 +26,34 @@ async function findTopicBySlug(topicSlug: string) {
   return data;
 }
 
+async function requireAuthenticatedContext() {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw createHttpError(401, "Unauthorized");
+  return { supabase, user };
+}
+
+export async function requireOwnedStudent(studentId: string) {
+  const normalizedStudentId = studentId.trim();
+  if (!normalizedStudentId) throw createHttpError(400, "Student ID is required.");
+  const { user } = await requireAuthenticatedContext();
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("students")
+    .select("*")
+    .eq("id", normalizedStudentId)
+    .eq("parent_user_id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw createHttpError(403, "Forbidden");
+  return { user, student: data };
+}
+
 export async function listStudentsForParent(parentUserId: string) {
+  const { user } = await requireAuthenticatedContext();
+  if (user.id !== parentUserId) throw createHttpError(403, "Forbidden");
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("students").select("*").eq("parent_user_id", parentUserId).order("created_at");
   if (error) throw error;
@@ -27,6 +61,8 @@ export async function listStudentsForParent(parentUserId: string) {
 }
 
 export async function listNotifications(userId: string) {
+  const { user } = await requireAuthenticatedContext();
+  if (user.id !== userId) throw createHttpError(403, "Forbidden");
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(6);
   if (error) throw error;
@@ -34,13 +70,12 @@ export async function listNotifications(userId: string) {
 }
 
 export async function getStudent(studentId: string) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase.from("students").select("*").eq("id", studentId).maybeSingle();
-  if (error) throw error;
-  return data;
+  const { student } = await requireOwnedStudent(studentId);
+  return student;
 }
 
 export async function setStudentCurrentTopic(studentId: string, areaSlug: string, topicSlug: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("students")
@@ -53,6 +88,7 @@ export async function setStudentCurrentTopic(studentId: string, areaSlug: string
 }
 
 export async function updateStudentSettings(studentId: string, targetMinutes: number, studyDays: number[]) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("students")
@@ -74,6 +110,7 @@ export async function getExercisesByTopic(topicSlug: string) {
 }
 
 export async function getProgressForStudent(studentId: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("student_topic_progress").select("*").eq("student_id", studentId);
   if (error) throw error;
@@ -110,6 +147,7 @@ export async function upsertTopicProgress(studentId: string, topicSlug: string, 
 }
 
 export async function getLatestAnalysisForStudent(studentId: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("ai_analyses")
@@ -123,6 +161,7 @@ export async function getLatestAnalysisForStudent(studentId: string) {
 }
 
 export async function listSubmissionsForStudent(studentId: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("work_submissions").select("*").eq("student_id", studentId).order("created_at", { ascending: false });
   if (error) throw error;
@@ -130,6 +169,7 @@ export async function listSubmissionsForStudent(studentId: string) {
 }
 
 export async function listSubmissionsWithAnalyses(studentId: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("work_submissions")
@@ -208,6 +248,7 @@ export async function addNotification(entry: { userId: string; type: string; mes
 }
 
 export async function createStudyPlan(studentId: string, examDate: string, items: Array<{ dayLabel: string; topic: string; exercises: string }>) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const planId = randomUUID();
   const { data, error } = await supabase
@@ -231,6 +272,7 @@ export async function createStudyPlan(studentId: string, examDate: string, items
 }
 
 export async function listStudyPlans(studentId: string) {
+  await requireOwnedStudent(studentId);
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("study_plans").select("*, study_plan_items(*)").eq("student_id", studentId).order("created_at", { ascending: false });
   if (error) throw error;
@@ -241,9 +283,19 @@ export async function getProgressSummary(studentId: string) {
   const progress = await getProgressForStudent(studentId);
   const total = progress.length || 1;
   const percentage = Math.round(progress.reduce((sum, item) => sum + Number(item.score ?? 0), 0) / total);
-  const mastered = progress.filter((item) => item.mastery === "maitrise").map((item) => topicLabels[item.topic_slug]);
-  const weak = progress.filter((item) => item.mastery === "a_renforcer").map((item) => topicLabels[item.topic_slug]);
-  return { percentage, mastered, weak, progress };
+  const mastered = progress
+    .filter((item) => item.mastery === "maitrise")
+    .map((item) => topicLabels[item.topic_slug] ?? item.topic_name ?? "Notion");
+  const weak = progress
+    .filter((item) => item.mastery === "a_renforcer")
+    .map((item) => topicLabels[item.topic_slug] ?? item.topic_name ?? "Notion");
+  return {
+    percentage: progress.length === 0 ? 0 : percentage,
+    mastered,
+    weak,
+    progress,
+    trackedTopics: progress.length,
+  };
 }
 
 export async function getRecommendation(student: { id: string; current_topic_slug: string; target_minutes: number }) {
@@ -252,9 +304,10 @@ export async function getRecommendation(student: { id: string; current_topic_slu
   const weak = [...progress].sort((a, b) => Number(a.score ?? 0) - Number(b.score ?? 0))[0];
   const focusTopic = weak && Number(weak.score ?? 0) < 50 ? weak.topic_slug : student.current_topic_slug;
   const exercises = await getExercisesByTopic(focusTopic);
-  const analysis = await getLatestAnalysisForStudent(student.id);
-  const score = Number(current?.score ?? 42);
-  const band = score < 50 ? "facile" : score < 70 ? "consolidation" : score < 85 ? "intermédiaire" : "défi";
+  const analysis = (await getLatestAnalysisForStudent(student.id)) ?? { conseil_eleve: "Aucun conseil disponible pour le moment." };
+  const score = current?.score == null ? null : Number(current.score);
+  const safeBand = score == null ? "a demarrer" : score < 50 ? "facile" : score < 70 ? "consolidation" : score < 85 ? "intermediaire" : "defi";
+  const band = safeBand;
   return {
     topicSlug: focusTopic,
     topicLabel: topicLabels[focusTopic] ?? "Notion",
@@ -262,7 +315,7 @@ export async function getRecommendation(student: { id: string; current_topic_slu
     band,
     estimatedMinutes: Number(student.target_minutes ?? 35),
     exercises,
-    lastAdvice: analysis?.conseil_eleve ?? "Continue avec régularité. Une courte séance bien faite vaut mieux qu’une longue séance abandonnée.",
+    lastAdvice: analysis?.conseil_eleve ?? "Continue avec rÃ©gularitÃ©. Une courte sÃ©ance bien faite vaut mieux quâ€™une longue sÃ©ance abandonnÃ©e.",
   };
 }
 
@@ -283,7 +336,7 @@ export async function activateLicense(code: string, userId: string) {
   const normalized = code.trim().toUpperCase();
   const { data: license, error } = await supabase.from("license_keys").select("*").eq("key_hash", hashText(normalized)).maybeSingle();
   if (error) throw error;
-  if (!license || license.status !== "available") throw new Error("Cette clé ne peut pas être activée.");
+  if (!license || license.status !== "available") throw new Error("Cette clÃ© ne peut pas Ãªtre activÃ©e.");
   const now = new Date().toISOString();
   await supabase.from("license_keys").update({ status: "activated", activated_at: now, activated_by: userId }).eq("id", license.id);
   await supabase.from("license_activations").insert({ id: randomUUID(), license_id: license.id, user_id: userId, activated_at: now, visible_suffix: license.key_suffix });
@@ -346,7 +399,7 @@ export async function createLicenseBatch(count: number, actorUserId?: string) {
       key_hash: hashText(plainText),
       key_prefix: "ELAN-3E",
       key_suffix: plainText.slice(-4),
-      product: "PRÊT POUR LA 3e — MATHS BÉNIN",
+      product: "PRÃŠT POUR LA 3e â€” MATHS BÃ‰NIN",
       status: "available",
       max_students: 2,
       created_at: now,

@@ -9,7 +9,11 @@ export default async function ElevePage() {
   if (user.role !== "parent") redirect("/admin");
   const student = (await listStudentsForParent(user.id))[0];
   if (!student) redirect("/app");
+
   const recommendation = await getRecommendation(student);
+  const exerciseNumber = recommendation.exercises[0]?.exercise_number;
+  const taskLabel = exerciseNumber ? `l'exercice ${exerciseNumber}` : "les exercices recommandés dans ton guide";
+
   return (
     <AppShell title="Espace élève">
       <div className="mx-auto max-w-2xl card">
@@ -19,12 +23,15 @@ export default async function ElevePage() {
           <p className="text-sm text-slate-500">Notion</p>
           <p className="mt-1 text-2xl font-bold text-slate-950">{recommendation.topicLabel}</p>
           <p className="mt-3 text-sm leading-6 text-slate-700">
-            Ouvre ton guide et fais {recommendation.exercises[0]?.exercise_number ?? "les exercices recommandés"}.
+            Ouvre ton guide et fais {taskLabel}.
+          </p>
+          <p className="mt-3 text-sm text-slate-600">
+            {recommendation.lastAdvice ?? "Quand tu auras terminé, envoie ton travail pour recevoir un retour personnalisé."}
           </p>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/app/envoyer-travail" className="btn-primary">Envoyer mon travail</Link>
-          <Link href="/app" className="btn-secondary">J’ai terminé</Link>
+          <Link href="/app" className="btn-secondary">Retour au tableau de bord</Link>
         </div>
       </div>
     </AppShell>

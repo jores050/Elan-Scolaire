@@ -41,7 +41,7 @@ export async function AppShell({ title, children }: { title: string; children: R
         ) : null}
         {user.role === "parent" && students[0] ? (
           <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
-            Élève actif : <span className="font-semibold text-slate-900">{students[0].firstName}</span> · {students[0].level}
+            Élève actif : <span className="font-semibold text-slate-900">{students[0].first_name}</span> · {students[0].level}
           </div>
         ) : null}
         {children}
