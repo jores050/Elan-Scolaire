@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { setStudentCurrentTopic } from "@/lib/app-data";
+import { startPretProgram } from "@/lib/pret-program";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
+  const studentId = String(formData.get("studentId") ?? "");
+
   try {
-    await setStudentCurrentTopic(
-      String(formData.get("studentId") ?? ""),
-      String(formData.get("areaSlug") ?? "sa1"),
-      String(formData.get("topicSlug") ?? "thales")
-    );
+    await startPretProgram(studentId);
+    return NextResponse.redirect(new URL("/app?program=started", request.url));
   } catch (error) {
     const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 500;
     if (status === 401) {
@@ -17,7 +16,9 @@ export async function POST(request: Request) {
     if (status === 400 || status === 403) {
       return NextResponse.redirect(new URL("/app?error=forbidden", request.url));
     }
+    if (status === 503) {
+      return NextResponse.redirect(new URL("/app?error=program-unavailable", request.url));
+    }
     throw error;
   }
-  return NextResponse.redirect(new URL("/app?updated=topic", request.url));
 }

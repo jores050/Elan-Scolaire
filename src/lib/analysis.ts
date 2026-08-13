@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { z } from "zod";
 import { addNotification, createAnalysis, upsertTopicProgress } from "@/lib/app-data";
 
 type AnalysisResult = {
@@ -26,6 +27,17 @@ type SubmissionForAnalysis = {
   file_names: string[] | null;
 };
 
+const geminiAnalysisSchema = z.object({
+  score: z.number().min(0).max(20),
+  status: z.enum(["reussi", "partiel", "a_revoir"]),
+  points_forts: z.array(z.string()),
+  erreurs: z.array(z.string()),
+  notions_a_revoir: z.array(z.string()),
+  conseil_eleve: z.string(),
+  conseil_parent: z.string(),
+  exercices_recommandes: z.array(z.string()),
+});
+
 async function callGemini(student: StudentForAnalysis, submission: SubmissionForAnalysis) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
@@ -44,16 +56,7 @@ async function callGemini(student: StudentForAnalysis, submission: SubmissionFor
   };
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) return null;
-  const parsed = JSON.parse(text) as {
-    score: number;
-    status: "reussi" | "partiel" | "a_revoir";
-    points_forts: string[];
-    erreurs: string[];
-    notions_a_revoir: string[];
-    conseil_eleve: string;
-    conseil_parent: string;
-    exercices_recommandes: string[];
-  };
+  const parsed = geminiAnalysisSchema.parse(JSON.parse(text));
   return {
     score: parsed.score,
     status: parsed.status,
@@ -84,7 +87,14 @@ function localAnalysis(student: StudentForAnalysis, submission: SubmissionForAna
 }
 
 export async function analyzeSubmission(student: StudentForAnalysis, submission: SubmissionForAnalysis) {
-  const result = (await callGemini(student, submission)) ?? localAnalysis(student, submission);
+  const result = (await callGemini(student, submission)) ?? (
+    process.env.NODE_ENV === "production"
+      ? null
+      : localAnalysis(student, submission)
+  );
+  if (!result) {
+    throw new Error("L’analyse n’a pas pu être terminée. Réessayez dans quelques instants.");
+  }
   const created = await createAnalysis({
     submissionId: submission.id,
     score: result.score,

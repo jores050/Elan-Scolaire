@@ -20,16 +20,20 @@ export default async function AccompagnementPage() {
   return (
     <AppShell title="Groupe d’accompagnement Elan Scolaire">
       <div className="card">
-        <p className="text-sm leading-7 text-slate-600">Posez vos questions sur les exercices, les notions de 3e et la préparation des devoirs.</p>
+        <p className="text-sm leading-7 text-slate-600">Posez vos questions sur les exercices, les notions de 3e et la progression du guide 14 jours.</p>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-slate-700">
           <li>Mathématiques niveau 3e</li>
-          <li>Questions liées au travail scolaire</li>
+          <li>Questions liées au guide « PRÊT POUR LA 3e EN 14 JOURS »</li>
           <li>Respect entre membres</li>
           <li>Aucune publication de données personnelles d’un autre élève</li>
           <li>L’accompagnement ne remplace pas les cours de l’établissement</li>
         </ul>
         <div className="mt-6">
-          <a href={SUPPORT_GROUP_URL || "#"} className="btn-primary">Rejoindre le groupe</a>
+          {SUPPORT_GROUP_URL ? (
+            <a href={SUPPORT_GROUP_URL} className="btn-primary">Rejoindre le groupe</a>
+          ) : (
+            <p className="text-sm text-slate-600">Le lien du groupe d’accompagnement sera disponible ici.</p>
+          )}
         </div>
       </div>
     </AppShell>
