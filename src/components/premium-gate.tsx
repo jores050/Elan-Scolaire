@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PURCHASE_URL } from "@/lib/config";
+import { HAS_PURCHASE_URL, PURCHASE_URL } from "@/lib/config";
 
 export function PremiumGate({ compact = false }: { compact?: boolean }) {
   return (
@@ -12,9 +12,13 @@ export function PremiumGate({ compact = false }: { compact?: boolean }) {
         <Link href="/activation" className="btn-primary">
           Activer ma clé
         </Link>
-        <a href={PURCHASE_URL} className="btn-secondary">
-          Obtenir le guide
-        </a>
+        {HAS_PURCHASE_URL ? (
+          <a href={PURCHASE_URL} className="btn-secondary">
+            Obtenir ce pack
+          </a>
+        ) : (
+          <span className="btn-secondary opacity-60">Achat à configurer</span>
+        )}
       </div>
     </div>
   );

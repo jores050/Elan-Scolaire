@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { DemoBadge, PublicFooter, PublicHeader, SectionTitle } from "@/components/shell";
 import { PremiumGate } from "@/components/premium-gate";
-import { PURCHASE_URL } from "@/lib/config";
+import { HAS_PURCHASE_URL, PURCHASE_URL } from "@/lib/config";
 
 const faq = [
   "Comment obtenir une clé ?",
-  "Une clé fonctionne-t-elle plusieurs fois ?",
+  "Le paiement est-il unique ?",
   "Puis-je suivre plusieurs enfants ?",
-  "L’application remplace-t-elle le professeur ?",
-  "Mon enfant doit-il avoir son propre téléphone ?",
-  "Comment fonctionne l’analyse des exercices ?",
-  "Comment accéder au groupe d’accompagnement ?",
+  "Le groupe d’accompagnement est-il inclus ?",
+  "L’application remplace-t-elle les cours ?",
+  "Comment fonctionne l’analyse des copies ?",
 ];
 
 export default function HomePage() {
@@ -22,55 +21,49 @@ export default function HomePage() {
           <div className="space-y-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">PRÊT POUR LA 3e — MATHS BÉNIN</p>
             <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-              Votre enfant entre en 3e ? Aidez-le à travailler au bon rythme.
+              14 jours pour consolider les bases avant la 3e.
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-600">
-              Elan Scolaire aide les parents à savoir quoi faire travailler à leur enfant, suivre ses progrès et identifier les notions à renforcer.
+              14 jours pour consolider les bases avant la 3e, puis des ressources et un accompagnement pour continuer à progresser.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/demo" className="btn-primary">
-                Découvrir l’application
-              </Link>
+              {HAS_PURCHASE_URL ? (
+                <a href={PURCHASE_URL} className="btn-primary">
+                  Obtenir ce pack
+                </a>
+              ) : (
+                <span className="btn-primary opacity-60">Achat à configurer</span>
+              )}
               <Link href="/activation" className="btn-secondary">
-                J’ai déjà ma clé
+                J’ai une clé
               </Link>
             </div>
           </div>
           <div className="card space-y-4 bg-slate-950 text-white">
             <DemoBadge />
             <div>
-              <p className="text-sm text-slate-300">Bonjour Maman de Junior 👋</p>
-              <p className="mt-1 text-2xl font-bold">Progression : 42 %</p>
+              <p className="text-sm text-slate-300">Pack lancement</p>
+              <p className="mt-1 text-3xl font-bold">2 500 FCFA</p>
+              <p className="mt-2 text-sm text-slate-200">Paiement unique</p>
             </div>
             <div className="rounded-3xl bg-white/10 p-4">
-              <p className="text-sm text-slate-300">Aujourd’hui</p>
-              <p className="mt-1 text-xl font-semibold">Mathématiques — Thalès</p>
-              <p className="mt-2 text-sm text-slate-200">Exercices 3, 4 et 5 · Temps estimé : 35 min</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-sm text-slate-300">Dernier travail</p>
-                <p className="text-xl font-bold">14/20</p>
-              </div>
-              <div className="rounded-2xl bg-white/10 p-4">
-                <p className="text-sm text-slate-300">À renforcer</p>
-                <p className="text-xl font-bold">Calcul littéral</p>
-              </div>
+              <p className="text-sm text-slate-300">Contenu</p>
+              <p className="mt-1 text-xl font-semibold">Guide 14 jours + application + accompagnement</p>
+              <p className="mt-2 text-sm text-slate-200">Un pack concret, pensé pour préparer l’entrée en 3e sans fausse promesse.</p>
             </div>
           </div>
         </section>
 
         <section className="shell py-10">
-          <SectionTitle eyebrow="Fonctionnement" title="Comment ça marche en 4 étapes" />
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <SectionTitle eyebrow="Promesse" title="Un pack simple, utile et fidèle au produit" />
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
-              "Indiquez où en est votre enfant.",
-              "L’application recommande le travail du jour.",
-              "L’enfant travaille avec son guide ou son cahier.",
-              "Il envoie son travail et reçoit les points à améliorer.",
+              "Le guide 14 jours aide à reprendre les bases essentielles.",
+              "L’application suit le jour en cours, les travaux envoyés et les points à revoir.",
+              "Le groupe d’accompagnement permet de continuer après les 14 jours si le lien est activé.",
             ].map((item, index) => (
               <div key={item} className="card">
-                <p className="text-sm font-semibold text-blue-600">Étape {index + 1}</p>
+                <p className="text-sm font-semibold text-blue-600">Point {index + 1}</p>
                 <p className="mt-3 text-base leading-7 text-slate-700">{item}</p>
               </div>
             ))}
@@ -78,53 +71,52 @@ export default function HomePage() {
         </section>
 
         <section className="shell py-10">
-          <SectionTitle eyebrow="Démo interactive" title="Un aperçu réaliste du tableau de bord" description="Vous pouvez explorer la démo, mais aucune donnée réelle n’est enregistrée." />
+          <SectionTitle eyebrow="Le pack" title="Ce que la famille reçoit" />
+          <div className="mt-8 card">
+            <ul className="grid gap-3 text-sm text-slate-700 md:grid-cols-2">
+              <li>Guide 14 jours</li>
+              <li>Corrigés détaillés</li>
+              <li>Guide formules et méthodes</li>
+              <li>35 épreuves réelles 3e / BEPC</li>
+              <li>Application de suivi</li>
+              <li>Groupe d’accompagnement</li>
+            </ul>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-lg font-semibold text-slate-950">PRÊT POUR LA 3e — MATHS BÉNIN</p>
+                <p className="mt-1 text-sm text-slate-600">Prix lancement : 2 500 FCFA · Paiement unique</p>
+              </div>
+              {HAS_PURCHASE_URL ? (
+                <a href={PURCHASE_URL} className="btn-primary">Obtenir ce pack</a>
+              ) : (
+                <span className="btn-primary opacity-60">Achat à configurer</span>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="shell py-10">
+          <SectionTitle eyebrow="Démo" title="Découvrir l’application sans achat" description="La démonstration montre le travail du jour, la progression, l’analyse et le suivi parent, sans upload réel ni écriture base utilisateur." />
           <div className="mt-8 grid gap-6 md:grid-cols-[1fr_0.9fr]">
             <div className="card space-y-4">
               <DemoBadge />
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-2xl bg-blue-50 p-4">
-                  <p className="text-sm text-slate-500">Aujourd’hui</p>
-                  <p className="text-xl font-bold text-slate-950">Thalès</p>
-                  <p className="mt-2 text-sm text-slate-600">Exercices 3, 4 et 5</p>
+                  <p className="text-sm text-slate-500">Jour du programme</p>
+                  <p className="text-xl font-bold text-slate-950">Jour 3 sur 14</p>
+                  <p className="mt-2 text-sm text-slate-600">Réduire une expression littérale</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm text-slate-500">Temps estimé</p>
-                  <p className="text-xl font-bold text-slate-950">35 min</p>
-                  <p className="mt-2 text-sm text-slate-600">Séance adaptée à un téléphone</p>
+                  <p className="text-sm text-slate-500">Analyse exemple</p>
+                  <p className="text-xl font-bold text-slate-950">15/20</p>
+                  <p className="mt-2 text-sm text-slate-600">Retour pédagogique simulé</p>
                 </div>
               </div>
               <Link href="/demo" className="btn-primary">
                 Ouvrir la démonstration
               </Link>
             </div>
-            <div className="space-y-4">
-              <div className="card">
-                <h3 className="text-lg font-semibold text-slate-950">Fonctionnalités</h3>
-                <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                  <li>Programme de travail personnalisé</li>
-                  <li>Suivi de progression</li>
-                  <li>Analyse des exercices</li>
-                  <li>Préparation aux devoirs</li>
-                  <li>Bibliothèque d’épreuves</li>
-                  <li>Accompagnement</li>
-                </ul>
-              </div>
-              <PremiumGate compact />
-            </div>
-          </div>
-        </section>
-
-        <section className="shell py-10">
-          <SectionTitle eyebrow="Offre" title="Le guide papier ou PDF reste au centre du travail" />
-          <div className="mt-8 card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-lg font-semibold text-slate-950">Pack pédagogique « PRÊT POUR LA 3e — MATHS BÉNIN »</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Le guide donne la matière. L’application vous aide à suivre, organiser et corriger l’entraînement.</p>
-            </div>
-            <a href={PURCHASE_URL} className="btn-primary">
-              Obtenir le guide
-            </a>
+            <PremiumGate compact />
           </div>
         </section>
 
@@ -135,7 +127,7 @@ export default function HomePage() {
               <div key={item} className="card">
                 <p className="font-semibold text-slate-950">{item}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Cette réponse est prévue dans la V1 avec un fonctionnement simple, lisible et rassurant pour les parents.
+                  La réponse est alignée sur le produit actuel : un pack à paiement unique avec clé d’activation et suivi parent.
                 </p>
               </div>
             ))}

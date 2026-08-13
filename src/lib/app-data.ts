@@ -20,7 +20,7 @@ export function generateLicensePlainText() {
 }
 
 async function findTopicBySlug(topicSlug: string) {
-  const supabase = createAdminClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("topics").select("id, slug, name").eq("slug", topicSlug).maybeSingle();
   if (error) throw error;
   return data;
@@ -38,32 +38,28 @@ async function requireAuthenticatedContext() {
 export async function requireOwnedStudent(studentId: string) {
   const normalizedStudentId = studentId.trim();
   if (!normalizedStudentId) throw createHttpError(400, "Student ID is required.");
-  const { user } = await requireAuthenticatedContext();
-  const supabase = createAdminClient();
+  const { supabase, user } = await requireAuthenticatedContext();
   const { data, error } = await supabase
     .from("students")
     .select("*")
     .eq("id", normalizedStudentId)
-    .eq("parent_user_id", user.id)
     .maybeSingle();
   if (error) throw error;
   if (!data) throw createHttpError(403, "Forbidden");
-  return { user, student: data };
+  return { supabase, user, student: data };
 }
 
 export async function listStudentsForParent(parentUserId: string) {
-  const { user } = await requireAuthenticatedContext();
+  const { supabase, user } = await requireAuthenticatedContext();
   if (user.id !== parentUserId) throw createHttpError(403, "Forbidden");
-  const supabase = createAdminClient();
   const { data, error } = await supabase.from("students").select("*").eq("parent_user_id", parentUserId).order("created_at");
   if (error) throw error;
   return data ?? [];
 }
 
 export async function listNotifications(userId: string) {
-  const { user } = await requireAuthenticatedContext();
+  const { supabase, user } = await requireAuthenticatedContext();
   if (user.id !== userId) throw createHttpError(403, "Forbidden");
-  const supabase = createAdminClient();
   const { data, error } = await supabase.from("notifications").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(6);
   if (error) throw error;
   return data ?? [];
@@ -75,8 +71,7 @@ export async function getStudent(studentId: string) {
 }
 
 export async function setStudentCurrentTopic(studentId: string, areaSlug: string, topicSlug: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase
     .from("students")
     .update({ current_area_slug: areaSlug, current_topic_slug: topicSlug })
@@ -88,8 +83,7 @@ export async function setStudentCurrentTopic(studentId: string, areaSlug: string
 }
 
 export async function updateStudentSettings(studentId: string, targetMinutes: number, studyDays: number[]) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase
     .from("students")
     .update({ target_minutes: targetMinutes, study_days: studyDays })
@@ -103,15 +97,14 @@ export async function updateStudentSettings(studentId: string, targetMinutes: nu
 export async function getExercisesByTopic(topicSlug: string) {
   const topic = await findTopicBySlug(topicSlug);
   if (!topic) return [];
-  const supabase = createAdminClient();
+  const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.from("exercises").select("*").eq("topic_id", topic.id).order("estimated_minutes");
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getProgressForStudent(studentId: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase.from("student_topic_progress").select("*").eq("student_id", studentId);
   if (error) throw error;
   const progress = data ?? [];
@@ -147,8 +140,7 @@ export async function upsertTopicProgress(studentId: string, topicSlug: string, 
 }
 
 export async function getLatestAnalysisForStudent(studentId: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase
     .from("ai_analyses")
     .select("*, work_submissions!inner(student_id)")
@@ -161,16 +153,14 @@ export async function getLatestAnalysisForStudent(studentId: string) {
 }
 
 export async function listSubmissionsForStudent(studentId: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase.from("work_submissions").select("*").eq("student_id", studentId).order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
 
 export async function listSubmissionsWithAnalyses(studentId: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase
     .from("work_submissions")
     .select("*, ai_analyses(*)")
@@ -180,14 +170,25 @@ export async function listSubmissionsWithAnalyses(studentId: string) {
   return data ?? [];
 }
 
-export async function createSubmission(input: { studentId: string; exerciseId: string | null; comment: string; fileNames: string[]; storedPaths: string[] }) {
-  const supabase = createAdminClient();
+export async function createSubmission(input: {
+  id?: string;
+  studentId: string;
+  exerciseId: string | null;
+  comment: string;
+  fileNames: string[];
+  storedPaths: string[];
+  programDayId?: string | null;
+  programItemId?: string | null;
+}) {
+  const { supabase } = await requireOwnedStudent(input.studentId);
   const { data, error } = await supabase
     .from("work_submissions")
     .insert({
-      id: randomUUID(),
+      id: input.id ?? randomUUID(),
       student_id: input.studentId,
       exercise_id: input.exerciseId,
+      program_day_id: input.programDayId ?? null,
+      program_item_id: input.programItemId ?? null,
       comment: input.comment,
       file_names: input.fileNames,
       storage_paths: input.storedPaths,
@@ -248,8 +249,7 @@ export async function addNotification(entry: { userId: string; type: string; mes
 }
 
 export async function createStudyPlan(studentId: string, examDate: string, items: Array<{ dayLabel: string; topic: string; exercises: string }>) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const planId = randomUUID();
   const { data, error } = await supabase
     .from("study_plans")
@@ -272,8 +272,7 @@ export async function createStudyPlan(studentId: string, examDate: string, items
 }
 
 export async function listStudyPlans(studentId: string) {
-  await requireOwnedStudent(studentId);
-  const supabase = createAdminClient();
+  const { supabase } = await requireOwnedStudent(studentId);
   const { data, error } = await supabase.from("study_plans").select("*, study_plan_items(*)").eq("student_id", studentId).order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];

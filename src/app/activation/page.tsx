@@ -19,7 +19,10 @@ export default async function ActivationPage({ searchParams }: { searchParams: P
       <main className="shell py-14">
         <div className="mx-auto max-w-xl card">
           <h1 className="text-3xl font-bold text-slate-950">Activez votre accès Elan Scolaire</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-600">La vérification se fait côté serveur. Format attendu : ELAN-3E-XXXX-XXXX-XXXX</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Votre guide comprend un accès à Elan Scolaire. Saisissez la clé unique reçue après votre achat pour activer le suivi de votre enfant.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Format attendu : ELAN-3E-XXXX-XXXX-XXXX</p>
           {status ? <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">{messages[status] ?? "Statut inconnu."}</div> : null}
           <form action="/api/licenses/verify" method="post" className="mt-6 space-y-4">
             <div>
@@ -34,7 +37,7 @@ export default async function ActivationPage({ searchParams }: { searchParams: P
             Vous avez déjà un compte ? <Link href="/connexion" className="font-semibold text-blue-700">Connectez-vous</Link>
           </p>
           <p className="mt-3 text-sm text-slate-600">
-            <Link href="/bienvenue" className="font-semibold text-blue-700">J’ai perdu ma clé / Bienvenue après achat</Link>
+            <Link href="/bienvenue" className="font-semibold text-blue-700">Bienvenue après achat</Link>
           </p>
         </div>
       </main>

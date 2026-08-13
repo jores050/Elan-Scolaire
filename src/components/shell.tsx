@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PURCHASE_URL } from "@/lib/config";
+import { HAS_PURCHASE_URL, PURCHASE_URL } from "@/lib/config";
 
 export function PublicHeader() {
   return (
@@ -17,9 +17,13 @@ export function PublicHeader() {
           <Link href="/connexion" className="btn-secondary">
             Connexion
           </Link>
-          <a href={PURCHASE_URL} className="btn-primary">
-            Obtenir le guide
-          </a>
+          {HAS_PURCHASE_URL ? (
+            <a href={PURCHASE_URL} className="btn-primary">
+              Obtenir ce pack
+            </a>
+          ) : (
+            <span className="btn-primary opacity-60">Achat à configurer</span>
+          )}
         </div>
       </div>
     </header>

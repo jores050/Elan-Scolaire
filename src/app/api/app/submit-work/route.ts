@@ -1,8 +1,9 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { analyzeSubmission } from "@/lib/analysis";
 import { createSubmission, getExercisesByTopic, requireOwnedStudent } from "@/lib/app-data";
+import { updatePretProgramProgressAfterAnalysis } from "@/lib/pret-program";
+import { uploadSubmissionFiles, validateSubmissionFiles } from "@/lib/storage";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -23,33 +24,41 @@ export async function POST(request: Request) {
   }
 
   const files = formData.getAll("files").filter((item): item is File => item instanceof File && item.size > 0);
-  if (files.length === 0) {
-    return NextResponse.redirect(new URL("/app/envoyer-travail?error=files", request.url));
+  try {
+    validateSubmissionFiles(files);
+  } catch (error) {
+    const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 400;
+    return NextResponse.redirect(new URL(`/app/envoyer-travail?error=${status === 400 ? "files" : "upload"}`, request.url));
   }
 
-  const savedPaths: string[] = [];
-  const fileNames: string[] = [];
-  const folder = path.join(/* turbopackIgnore: true */ process.cwd(), "data", "uploads", student.id);
-  mkdirSync(folder, { recursive: true });
-
-  for (const file of files.slice(0, 4)) {
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-    const dest = path.join(folder, safeName);
-    writeFileSync(dest, bytes);
-    savedPaths.push(dest);
-    fileNames.push(file.name);
-  }
+  const submissionId = randomUUID();
+  const storedPaths = await uploadSubmissionFiles({
+    parentUserId: student.parent_user_id,
+    studentId: student.id,
+    submissionId,
+    files,
+  });
 
   const exercise = (await getExercisesByTopic(student.current_topic_slug))[0];
   const submission = await createSubmission({
+    id: submissionId,
     studentId: student.id,
     exerciseId: exercise?.id ?? null,
+    programDayId: String(formData.get("programDayId") ?? "") || null,
+    programItemId: String(formData.get("programItemId") ?? "") || null,
     comment: String(formData.get("comment") ?? ""),
-    fileNames,
-    storedPaths: savedPaths,
+    fileNames: files.map((file) => file.name),
+    storedPaths,
   });
 
-  await analyzeSubmission(student, submission);
+  const analysis = await analyzeSubmission(student, submission);
+  await updatePretProgramProgressAfterAnalysis({
+    submissionId: submission.id,
+    studentId: student.id,
+    programDayId: submission.program_day_id ?? null,
+    programItemId: submission.program_item_id ?? null,
+    score: analysis.score,
+    status: analysis.status,
+  });
   return NextResponse.redirect(new URL("/app/travaux?uploaded=1", request.url));
 }
