@@ -1,7 +1,20 @@
 export const APP_NAME = "Elan Scolaire";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-export const PURCHASE_URL = process.env.NEXT_PUBLIC_PURCHASE_URL || "";
-export const HAS_PURCHASE_URL = Boolean(PURCHASE_URL);
+export function getAbsoluteHttpUrl(value: string | undefined) {
+  const candidate = value?.trim();
+
+  if (!candidate) return "";
+
+  try {
+    const url = new URL(candidate);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+export const PURCHASE_URL = getAbsoluteHttpUrl(process.env.NEXT_PUBLIC_PURCHASE_URL);
+export const HAS_PURCHASE_URL = PURCHASE_URL.length > 0;
 export const SUPPORT_GROUP_URL = process.env.SUPPORT_GROUP_URL || "";
 export const COOKIE_NAME = "elan_session";
 export const LICENSE_WEBHOOK_SECRET = process.env.LICENSE_WEBHOOK_SECRET || "";

@@ -1,6 +1,6 @@
-export type LicenseStatus = "available" | "activated" | "disabled" | "expired";
+export type LicenseStatus = "available" | "active" | "disabled" | "expired";
 export type UserRole = "parent" | "admin";
-export type MasteryStatus = "pas_commence" | "en_cours" | "maitrise" | "a_renforcer";
+export type MasteryStatus = "pas_commence" | "maitrise" | "a_renforcer" | "a_reprendre";
 export type AnalysisStatus = "reussi" | "partiel" | "a_revoir";
 
 export type UserRecord = {
@@ -95,7 +95,7 @@ export type TopicProgressRecord = {
   id: string;
   studentId: string;
   topicSlug: string;
-  score: number;
+  score: number | null;
   mastery: MasteryStatus;
   updatedAt: string;
 };
@@ -113,7 +113,7 @@ export type WorkSubmissionRecord = {
 export type AIAnalysisRecord = {
   id: string;
   submissionId: string;
-  score: number;
+  score: number | null;
   status: AnalysisStatus;
   pointsForts: string[];
   erreurs: string[];

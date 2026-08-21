@@ -150,7 +150,7 @@ function seedDb(): AppDatabase {
         keyPrefix: "ELAN-3E",
         keySuffix: "0001",
         product: "PRÊT POUR LA 3e — MATHS BÉNIN",
-        status: "activated",
+        status: "active",
         maxStudents: 2,
         createdAt: now(),
         activatedAt: now(),
@@ -189,7 +189,7 @@ function seedDb(): AppDatabase {
       { id: makeId("progress"), studentId: demoStudentId, topicSlug: "nombres-reels", score: 82, mastery: "maitrise", updatedAt: now() },
       { id: makeId("progress"), studentId: demoStudentId, topicSlug: "valeur-absolue", score: 76, mastery: "maitrise", updatedAt: now() },
       { id: makeId("progress"), studentId: demoStudentId, topicSlug: "thales", score: 48, mastery: "a_renforcer", updatedAt: now() },
-      { id: makeId("progress"), studentId: demoStudentId, topicSlug: "triangle-rectangle", score: 60, mastery: "en_cours", updatedAt: now() },
+      { id: makeId("progress"), studentId: demoStudentId, topicSlug: "triangle-rectangle", score: 60, mastery: "a_renforcer", updatedAt: now() },
     ],
     submissions: [
       {
@@ -332,7 +332,7 @@ export function verifyLicense(code: string) {
   if (!license) return { ok: false as const, reason: "invalide" };
   if (license.status === "disabled") return { ok: false as const, reason: "desactivee" };
   if (license.status === "expired") return { ok: false as const, reason: "expiree" };
-  if (license.status === "activated") return { ok: false as const, reason: "deja_utilisee" };
+  if (license.status === "active") return { ok: false as const, reason: "deja_utilisee" };
   return { ok: true as const, license };
 }
 
@@ -341,7 +341,7 @@ export function activateLicense(code: string, userId: string) {
   const license = db.licenses.find((item) => item.keyHash === hashText(code.trim().toUpperCase()));
   if (!license) throw new Error("Clé invalide.");
   if (license.status !== "available") throw new Error("Cette clé ne peut pas être activée.");
-  license.status = "activated";
+  license.status = "active";
   license.activatedAt = now();
   license.activatedBy = userId;
   const user = db.users.find((item) => item.id === userId);
@@ -416,7 +416,7 @@ export function getProgressForStudent(studentId: string) {
 
 export function upsertTopicProgress(studentId: string, topicSlug: string, score: number) {
   const db = readDb();
-  const mastery: TopicProgressRecord["mastery"] = score >= 75 ? "maitrise" : score >= 50 ? "en_cours" : "a_renforcer";
+  const mastery: TopicProgressRecord["mastery"] = score >= 80 ? "maitrise" : score < 45 ? "a_reprendre" : "a_renforcer";
   const existing = db.topicProgress.find((item) => item.studentId === studentId && item.topicSlug === topicSlug);
   if (existing) {
     existing.score = score;

@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 import { assertSupabasePublicEnv } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
+  const protectedPath = request.nextUrl.pathname.startsWith("/app") || request.nextUrl.pathname.startsWith("/admin");
+  if (!protectedPath) {
+    return NextResponse.next({ request });
+  }
+
   const { url, key } = assertSupabasePublicEnv();
   let supabaseResponse = NextResponse.next({ request });
 
@@ -23,8 +28,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const protectedPath = request.nextUrl.pathname.startsWith("/app") || request.nextUrl.pathname.startsWith("/admin");
   if (!user && protectedPath) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/connexion";

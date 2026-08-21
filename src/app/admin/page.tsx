@@ -15,11 +15,12 @@ export default async function AdminPage() {
         <MetricCard label="Élèves" value={`${dashboard.counts.students}`} />
         <MetricCard label="Activations" value={`${dashboard.counts.activations}`} />
         <MetricCard label="Travaux envoyés" value={`${dashboard.counts.submissions}`} />
-        <MetricCard label="Analyses IA" value={`${dashboard.counts.analyses}`} />
+        <MetricCard label="Analyses de travaux" value={`${dashboard.counts.analyses}`} />
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="card">
           <h2 className="text-lg font-semibold text-slate-950">Générer des clés</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">Après génération, les clés complètes seront affichées une seule fois pour copie.</p>
           <form action="/api/admin/licenses/generate" method="post" className="mt-4 space-y-4">
             <select name="count" className="input">
               <option value="1">1</option>

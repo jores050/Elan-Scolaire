@@ -1,28 +1,44 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { activateLicense, createProfile, createStudent } from "@/lib/app-data";
+import { ACTIVATION_COOKIE, readActivationContext } from "@/lib/activation-token";
+import { getSignupErrorTarget, isExistingAccountError } from "@/lib/auth-finalize";
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
+  const cookieStore = await cookies();
+  const activationContext = readActivationContext(cookieStore.get(ACTIVATION_COOKIE)?.value);
+  if (!activationContext) return NextResponse.redirect(new URL("/activation?status=invalide", request.url));
+
   const formData = await request.formData();
-  const license = String(formData.get("license") ?? "");
-  const fullName = String(formData.get("fullName") ?? "");
-  const email = String(formData.get("email") ?? "");
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+
+  if (!email || !password) {
+    return NextResponse.redirect(new URL("/inscription?error=missing_fields", request.url), 303);
+  }
+
+  if (password.length < 8) {
+    return NextResponse.redirect(new URL("/inscription?error=weak_password", request.url), 303);
+  }
+
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
-  if (error || !data.user) return NextResponse.redirect(new URL("/connexion?error=invalid", request.url));
-  await createProfile({ id: data.user.id, email, fullName, role: "parent" });
-  await activateLicense(license, data.user.id);
-  await createStudent({
-    parentUserId: data.user.id,
-    firstName: String(formData.get("studentName") ?? ""),
-    level: String(formData.get("level") ?? "3e"),
-    school: String(formData.get("school") ?? ""),
-    currentAreaSlug: String(formData.get("currentAreaSlug") ?? "sa1"),
-    currentTopicSlug: String(formData.get("currentTopicSlug") ?? "thales"),
-    objective: (String(formData.get("objective") ?? "suivre_les_cours") as "reprendre_les_bases" | "suivre_les_cours" | "preparer_un_devoir" | "preparer_le_bepc"),
-    targetMinutes: 35,
-    studyDays: [1, 2, 4, 6],
-  });
-  return NextResponse.redirect(new URL("/app", request.url));
+  const identitiesCount = Array.isArray(data.user?.identities) ? data.user.identities.length : null;
+  const signupErrorMessage = error?.message ?? null;
+  const accountAlreadyExists = isExistingAccountError(signupErrorMessage, Boolean(data.user) && !data.session ? identitiesCount : null);
+
+  if (accountAlreadyExists) {
+    return NextResponse.redirect(new URL("/connexion?error=already_exists", request.url), 303);
+  }
+
+  if (error || !data.user) {
+    return NextResponse.redirect(new URL(getSignupErrorTarget(signupErrorMessage), request.url), 303);
+  }
+
+  if (!data.session) {
+    return NextResponse.redirect(new URL("/inscription?status=confirm-email", request.url), 303);
+  }
+
+  return NextResponse.redirect(new URL("/api/auth/finalize", request.url), 303);
 }

@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { requireUser } from "@/lib/auth";
-import { getLatestAnalysisForStudent, getProgressSummary, listStudentsForParent, listStudyPlans } from "@/lib/app-data";
+import { getStudentSelectionForParent } from "@/lib/active-student";
+import { requireParentAccess } from "@/lib/auth";
+import { getLatestAnalysisForStudent, getProgressSummary, listStudyPlans } from "@/lib/app-data";
 
 export default async function BepcPage() {
-  const user = await requireUser();
+  const user = await requireParentAccess({ requireStudent: true });
   if (user.role !== "parent") redirect("/admin");
-  const student = (await listStudentsForParent(user.id))[0];
+  const { activeStudent: student } = await getStudentSelectionForParent(user.id);
   if (!student) redirect("/app");
 
   const summary = await getProgressSummary(student.id);
@@ -33,8 +34,8 @@ export default async function BepcPage() {
       <div className="card mt-6">
         <h2 className="text-lg font-semibold text-slate-950">Lecture BEPC</h2>
         <p className="mt-3 text-sm text-slate-600">
-          Les indicateurs ci-dessus reflètent maintenant uniquement les vraies données de l’élève.
-          L’intégration d’une banque complète de sujets BEPC devra s’appuyer sur de vrais contenus source avant diffusion commerciale.
+          Les indicateurs ci-dessus reflètent uniquement le travail réalisé par l’élève.
+          Les sujets BEPC disponibles seront proposés progressivement dans cet espace.
         </p>
         <p className="mt-3 text-sm text-slate-700">
           Points à renforcer : {summary.weak.slice(0, 3).join(", ") || "aucune alerte pour l’instant"}.

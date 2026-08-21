@@ -1,20 +1,25 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { requireUser } from "@/lib/auth";
-import { listStudentsForParent, listStudyPlans } from "@/lib/app-data";
+import { getStudentSelectionForParent } from "@/lib/active-student";
+import { requireParentAccess } from "@/lib/auth";
+import { listStudyPlans } from "@/lib/app-data";
 
-export default async function PreparerDevoirPage() {
-  const user = await requireUser();
+export default async function PreparerDevoirPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const user = await requireParentAccess({ requireStudent: true });
   if (user.role !== "parent") redirect("/admin");
-  const student = (await listStudentsForParent(user.id))[0];
+  const { activeStudent: student } = await getStudentSelectionForParent(user.id);
   if (!student) redirect("/app");
   const plans = await listStudyPlans(student.id);
+  const params = await searchParams;
+  const noContent = params.error === "no-content";
 
   return (
     <AppShell title="Préparer un devoir">
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
-          <h2 className="text-2xl font-bold text-slate-950">Créer un programme</h2>
+          <h2 className="text-2xl font-bold text-slate-950">Préparer un devoir</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-600">Le plan est temporaire, prioritaire jusqu’au devoir, puis ÉLAN revient automatiquement au parcours annuel normal.</p>
+          {noContent ? <p className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm text-slate-700">Aucun exercice validé n’est encore disponible pour cette notion. Aucun faux exercice n’a été généré.</p> : null}
           <form action="/api/app/study-plan" method="post" className="mt-6 space-y-4">
             <input type="hidden" name="studentId" value={student.id} />
             <div>
@@ -34,7 +39,7 @@ export default async function PreparerDevoirPage() {
                 <option>1 h</option>
               </select>
             </div>
-            <button className="btn-primary">Générer un programme</button>
+            <button className="btn-primary">Créer le plan Aujourd’hui · Demain · Veille</button>
           </form>
         </div>
         <div className="card">

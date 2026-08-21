@@ -109,6 +109,13 @@ Le bouton premium lit `SUPPORT_GROUP_URL`.
 - `AI_PROVIDER=gemini` possible si configuré proprement côté serveur
 - `AI_PROVIDER=mock` uniquement pour développement/test
 
+## Suivi futur de l’usage IA
+
+Le suivi annuel pourra ajouter plus tard une table `analysis_usage` avec `user_id`,
+`student_id`, `period_start`, `period_end`, `analyses_used` et `analyses_limit`.
+Cette table devra être protégée par RLS via la propriété réelle de l’élève. Aucun quota
+n’est fixé, appliqué ou annoncé dans la version actuelle.
+
 ## Points restant avant production
 
 - brancher le repository serveur sur Supabase réel

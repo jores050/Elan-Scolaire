@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f0fff8"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="score" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#006b50"/>
+      <stop offset="1" stop-color="#00a578"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#082238" flood-opacity=".10"/>
+    </filter>
+  </defs>
+
+  <rect width="390" height="844" fill="url(#bg)"/>
+
+  <!-- iPhone status bar -->
+  <rect width="390" height="48" fill="#ffffff"/>
+  <text x="24" y="30" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#071a2d">9:41</text>
+  <g fill="none" stroke="#071a2d" stroke-width="2">
+    <path d="M319 28c6-6 14-6 20 0M323 32c4-4 8-4 12 0"/>
+    <rect x="350" y="20" width="20" height="11" rx="3"/>
+    <path d="M372 24v4"/>
+  </g>
+  <rect x="353" y="23" width="14" height="5" rx="1.5" fill="#071a2d"/>
+
+  <!-- app header -->
+  <rect y="48" width="390" height="68" fill="#ffffff"/>
+  <circle cx="31" cy="82" r="18" fill="#007e5d"/>
+  <text x="31" y="88" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#ffffff">E</text>
+  <text x="60" y="78" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#071a2d">Élan Scolaire</text>
+  <text x="60" y="97" font-family="Arial, sans-serif" font-size="11" fill="#647184">Prêt pour la 3e en 14 jours</text>
+  <rect x="287" y="70" width="79" height="25" rx="12.5" fill="#e6f7f1"/>
+  <text x="326.5" y="87" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#006b50">DÉMONSTRATION</text>
+
+  <g transform="translate(18 136)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#007e5d" letter-spacing="1.1">JOUR 14 • BILAN FINAL</text>
+    <text x="0" y="35" font-family="Arial, sans-serif" font-size="26" font-weight="700" fill="#071a2d">Test des 14 jours terminé</text>
+    <text x="0" y="59" font-family="Arial, sans-serif" font-size="13" fill="#647184">Les bases essentielles ont été vérifiées.</text>
+
+    <!-- score card -->
+    <g filter="url(#shadow)">
+      <rect x="0" y="84" width="354" height="190" rx="24" fill="url(#score)"/>
+    </g>
+    <text x="24" y="116" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#ccf5e6" letter-spacing="1">RÉSULTAT GLOBAL</text>
+    <text x="24" y="188" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#ffffff">90%</text>
+    <rect x="24" y="210" width="306" height="10" rx="5" fill="#ffffff" opacity=".25"/>
+    <rect x="24" y="210" width="275" height="10" rx="5" fill="#ffd21a"/>
+    <text x="24" y="247" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">19 bonnes réponses sur 21</text>
+    <text x="286" y="247" font-family="Arial, sans-serif" font-size="11" fill="#ccf5e6">Bases solides</text>
+
+    <!-- feedback -->
+    <rect x="0" y="294" width="354" height="89" rx="18" fill="#ffffff" stroke="#dfe8ec"/>
+    <circle cx="31" cy="326" r="15" fill="#e6f7f1"/>
+    <path d="M24 326l5 5 9-11" fill="none" stroke="#007e5d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="57" y="323" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#071a2d">Très bon progrès</text>
+    <text x="57" y="344" font-family="Arial, sans-serif" font-size="11.5" fill="#647184">L'élève sait choisir et expliquer sa méthode.</text>
+    <text x="57" y="362" font-family="Arial, sans-serif" font-size="11.5" fill="#647184">Il peut commencer les notions de 3e.</text>
+
+    <text x="0" y="417" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#071a2d">Bilan par domaine</text>
+
+    <rect x="0" y="438" width="171" height="82" rx="17" fill="#ffffff" stroke="#dfe8ec"/>
+    <circle cx="27" cy="464" r="11" fill="#e6f7f1"/>
+    <path d="M22 464l4 4 7-8" fill="none" stroke="#007e5d" stroke-width="2.3"/>
+    <text x="45" y="467" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#071a2d">Calcul numérique</text>
+    <text x="18" y="496" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#007e5d">95%</text>
+
+    <rect x="183" y="438" width="171" height="82" rx="17" fill="#ffffff" stroke="#dfe8ec"/>
+    <circle cx="210" cy="464" r="11" fill="#e6f7f1"/>
+    <path d="M205 464l4 4 7-8" fill="none" stroke="#007e5d" stroke-width="2.3"/>
+    <text x="228" y="467" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#071a2d">Algèbre</text>
+    <text x="201" y="496" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#007e5d">90%</text>
+
+    <rect x="0" y="532" width="171" height="82" rx="17" fill="#ffffff" stroke="#dfe8ec"/>
+    <circle cx="27" cy="558" r="11" fill="#fff3d2"/>
+    <text x="27" y="562" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#a15e00">!</text>
+    <text x="45" y="561" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#071a2d">Géométrie</text>
+    <text x="18" y="590" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#d27b00">81%</text>
+
+    <rect x="183" y="532" width="171" height="82" rx="17" fill="#ffffff" stroke="#dfe8ec"/>
+    <circle cx="210" cy="558" r="11" fill="#e6f7f1"/>
+    <path d="M205 558l4 4 7-8" fill="none" stroke="#007e5d" stroke-width="2.3"/>
+    <text x="228" y="561" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#071a2d">Statistiques</text>
+    <text x="201" y="590" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#007e5d">95%</text>
+
+    <rect x="0" y="634" width="354" height="54" rx="17" fill="#071a2d"/>
+    <text x="177" y="667" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">Continuer vers le programme de 3e  →</text>
+  </g>
+
+  <!-- home indicator -->
+  <rect x="126" y="826" width="138" height="5" rx="2.5" fill="#071a2d" opacity=".85"/>
+</svg>

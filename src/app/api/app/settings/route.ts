@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateStudentSettings } from "@/lib/app-data";
+import { updateStudentSettings, upsertReminderPreference } from "@/lib/app-data";
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -7,8 +7,14 @@ export async function POST(request: Request) {
     .split(",")
     .map((value) => Number(value.trim()))
     .filter((value) => Number.isFinite(value));
+  const reminderDays = formData.getAll("reminderDays")
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value));
+  const reminderHour = String(formData.get("reminderHour") ?? "18:30").trim() || "18:30";
+  const reminderActive = String(formData.get("reminderActive") ?? "") === "on";
   try {
     await updateStudentSettings(String(formData.get("studentId") ?? ""), Number(formData.get("targetMinutes") ?? 35), days);
+    await upsertReminderPreference(String(formData.get("studentId") ?? ""), reminderDays, reminderHour, reminderActive);
   } catch (error) {
     const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 500;
     if (status === 401) {
