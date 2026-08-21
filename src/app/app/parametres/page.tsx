@@ -81,7 +81,9 @@ export default async function ParametresPage({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-semibold text-slate-950">Rappels automatiques</h3>
-                  <p className="mt-1 text-sm text-slate-600">Mécanisme réel : cron Vercel toutes les 5 minutes, notifications in-app persistées en fuseau {getReminderTimezone()}.</p>
+                  <p className="mt-1 text-sm text-slate-600">Mécanisme réel : <p className="mt-1 text-sm text-slate-600">
+  Rappel automatique quotidien à 16 h, avec notifications in-app persistées en fuseau {getReminderTimezone()}.
+</p>, notifications in-app persistées en fuseau {getReminderTimezone()}.</p>
                 </div>
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
                   <input type="checkbox" name="reminderActive" defaultChecked={reminderActive} />
